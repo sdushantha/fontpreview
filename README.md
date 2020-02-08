@@ -29,6 +29,17 @@ $ cd fontpreview
 $ sudo make install
 ```
 
+### Install it locally
+```
+# Download the fontpreview source code, save as fontpreview
+# and make it executeable
+$ curl -L https://git.io/raw_fontpreview > fontpreview && chmod +x fontpreview
+
+# Then move fontpreview to somewhere in your $PATH
+# Here is an example
+$ mv fontpreview ~/scripts/
+```
+
 ## Usage
 ```
 $ fontpreview --help
