@@ -39,12 +39,12 @@ show_help() {
 }
 
 pre_exit() {
-	# Get the proccess ID of this script and kill it.
+    # Get the proccess ID of this script and kill it.
     # We are dumping the output of kill to /dev/null
     # because if the user quits sxiv before they
     # exit this script, an error will be shown
     # from kill and we dont want that
-	kill -9 "$(cat /tmp/fontpreview.pid 2>/dev/null)" &> /dev/null
+    kill -9 "$(cat /tmp/fontpreview.pid 2>/dev/null)" &> /dev/null
  
 }
 
@@ -92,8 +92,8 @@ main(){
     # having to manualy change the focus back to the terminal.
     xdotool getactivewindow > /tmp/terminal_window_id
 
-	# Flag to run some commands only once in the loop
-	FIRST_RUN=true
+    # Flag to run some commands only once in the loop
+    FIRST_RUN=true
 
     while true; do
         # List out all the fonts which imagemagick is able to find, extract
