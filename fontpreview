@@ -4,7 +4,11 @@
 #
 # Dependencies: sxiv, imagemagick, xdotool, fzf
 
-FONT_PREVIEW="/tmp/font.png"
+# Use mktemp to create temporary files that won't
+# collide with any other application's tmp files.
+PIDFILE="$(mktemp --tmpdir fontpreview_XXXXXXXX.pid)"
+FONT_PREVIEW="$(mktemp --tmpdir fontpreview_XXXXXXXX.png)"
+TERMWIN_IDFILE="$(mktemp --tmpdir fontpreview_XXXXXXXX.termpid)"
 VERSION=1.0.0
 
 # Default values
@@ -44,7 +48,7 @@ pre_exit() {
     # because if the user quits sxiv before they
     # exit this script, an error will be shown
     # from kill and we dont want that
-    kill -9 "$(cat /tmp/fontpreview.pid 2>/dev/null)" &> /dev/null
+    kill -9 "$(cat "$PIDFILE" 2>/dev/null)" &> /dev/null
  
 }
 
@@ -90,7 +94,7 @@ main(){
     # This is so that when we open up sxiv, we can change the focus back to
     # the terminal window, so that the user can search for the fonts without
     # having to manualy change the focus back to the terminal.
-    xdotool getactivewindow > /tmp/terminal_window_id
+    xdotool getactivewindow > "$TERMWIN_IDFILE"
 
     # Flag to run some commands only once in the loop
     FIRST_RUN=true
@@ -115,11 +119,11 @@ main(){
             # Change focus from sxiv, back to the terminal window
             # so that user can continue to search for fonts without
             # having to manually change focus back to the terminal window
-            xdotool windowfocus "$(cat /tmp/terminal_window_id)"
+            xdotool windowfocus "$(cat "$TERMWIN_IDFILE")"
 
             # Save the process ID so that we can kill
             # sxiv when the user exits the script
-            echo $! >/tmp/fontpreview.pid
+            echo $! >"$PIDFILE"
     	fi
     done
 }
