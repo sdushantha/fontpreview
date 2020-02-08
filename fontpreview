@@ -114,7 +114,8 @@ main(){
             FIRST_RUN=false
 
             # Display the font preview using sxiv
-            sxiv -g "$SIZE$POSITION" "$FONT_PREVIEW" -N "fontpreview" -b &
+            #sxiv -g "$SIZE$POSITION" "$FONT_PREVIEW" -N "fontpreview" -b &
+            sxiv -N "fontpreview" -b -g "$SIZE$POSITION" "$FONT_PREVIEW" &
 
             # Change focus from sxiv, back to the terminal window
             # so that user can continue to search for fonts without
