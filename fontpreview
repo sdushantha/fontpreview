@@ -4,6 +4,8 @@
 #
 # Dependencies: sxiv, imagemagick, xdotool, fzf
 
+# Use mktemp to create temporary files that won't
+# collide with any other application's tmp files.
 PIDFILE="$(mktemp --tmpdir fontpreview_XXXXXXXX.pid)"
 FONT_PREVIEW="$(mktemp --tmpdir fontpreview_XXXXXXXX.png)"
 TERMWIN_IDFILE="$(mktemp --tmpdir fontpreview_XXXXXXXX.termpid)"
