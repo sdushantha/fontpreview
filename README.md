@@ -30,7 +30,7 @@ $ sudo make install
 ```
 
 ### Install it locally
-```
+```bash
 # Download the fontpreview source code, save as fontpreview
 # and make it executeable
 $ curl -L https://git.io/raw_fontpreview > fontpreview && chmod +x fontpreview
