@@ -3,7 +3,7 @@
 `fontpreview` is a commandline tool that lets you **quickly search** for fonts
 that are installed on your machine and preview them. The **fuzzy search** feature
 is provided by `fzf` and the preview is generated with `imagemagick` and then
-displayed using `sxiv`. This tool is **highley customizeable**, almost all of the
+displayed using `sxiv`. This tool is **highly customizable**, almost all of the
 variables in this tool can be changed using the commandline flags or you can 
 configure them using environment variables.
 
@@ -39,6 +39,9 @@ $ curl -L https://git.io/raw_fontpreview > fontpreview && chmod +x fontpreview
 # Here is an example
 $ mv fontpreview ~/scripts/
 ```
+
+### AUR package
+For arch based distros, an AUR package is available at https://aur.archlinux.org/packages/fontpreview/
 
 ## Usage
 ```
