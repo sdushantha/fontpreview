@@ -102,7 +102,7 @@ main(){
     while true; do
         # List out all the fonts which imagemagick is able to find, extract
         # the font names and then pass them to fzf
-        font=$(convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT")
+        font=$(convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT" --query="$font")
 
         # Exit if nothing is returned by fzf, which also means that the user
         # has pressed [ESCAPE]
