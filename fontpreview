@@ -63,7 +63,7 @@ generate_preview(){
         -font "$1" \
         -fill "$FG_COLOR" \
         -annotate +0+0 "$PREVIEW_TEXT" \
-        -flatten "$FONT_PREVIEW"
+        -flatten "$2"
 }
 
 main(){
@@ -106,7 +106,7 @@ main(){
         # has pressed [ESCAPE]
         [[ -z $font ]] && return
 
-        generate_preview "$font"
+        generate_preview "$font" "$FONT_PREVIEW"
 
         if [ $FIRST_RUN == true ]; then
             FIRST_RUN=false
@@ -135,11 +135,11 @@ trap "" SIGTSTP
 trap pre_exit EXIT
 
 # Parse the arguments
-options=$(getopt -o h --long position:,size:,version,search-prompt:,font-size:,bg-color:,fg-color:,preview-text:,help -- "$@")
+options=$(getopt -o hi:o: --long position:,size:,version,search-prompt:,font-size:,bg-color:,fg-color:,preview-text:,input:,output:,help -- "$@")
 eval set -- "$options"
 
 while true; do
-    case "$1" in 
+    case "$1" in
         --size)
             shift;
             FONTPREVIEW_SIZE=$2
@@ -155,6 +155,12 @@ while true; do
         --version)
             echo $VERSION
             exit
+            ;;
+        -i|--input)
+            input_file="$2"
+            ;;
+        -o|--output)
+            output_file="$2"
             ;;
         --search-prompt)
             FONTPREVIEW_SEARCH_PROMPT=$2
@@ -178,4 +184,13 @@ while true; do
     esac
     shift
 done
+
+if [ -n $input_file ] ; then
+    if [ -z $output_file ] ; then
+        output_file="${input_file}.png"
+    fi
+    generate_preview "$input_file" "$output_file"
+    exit
+fi
+
 main
