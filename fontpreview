@@ -185,8 +185,8 @@ while true; do
     shift
 done
 
-if [[ $input_file != "" ]] ; then
-    if [ -z $output_file ] ; then
+if [[ "$input_file" != "" ]] ; then
+    if [ -z "$output_file" ] ; then
         output_file="${input_file}.png"
     fi
     generate_preview "$input_file" "$output_file"
