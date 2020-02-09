@@ -102,17 +102,27 @@ main(){
 
     # Flag to run some commands only once in the loop
     FIRST_RUN=true
+    
+    # Default value of the font
     font=$(convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | head -1)
+    
+    # Start a co-process, everytime you press [ENTER], this process will echo
+    # "font -- <font name>" in the background. And the command =read t <&{COPROC[0]}=
+    # will get data: "font -- <font name>"
+    # Jump into a new fzf page to edit PREVIEW_TEXT if you press [Ctrl-t] in the
+    # fzf page of font selection.
     coproc { convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT" --bind 'ctrl-t:execute(echo preview_text -- $( printf "%s\n" "<Input and ENTER>" | fzf --print-query --bind="ctrl-t:abort" | tail -1 ) ),ctrl-y:execute(echo -n {} | xclip -selection clipboard),enter:execute(echo font -- {})'; }
-    	while read t <&"${COPROC[0]}"; do
-    	    case "$t" in
-	        'preview_text -- '*)
-                    [ -n "${t#preview_text -- }" ] && PREVIEW_TEXT="${t#preview_text -- }"
-                    ;;
-                'font -- '*)
-                    [ -n "${t#font -- }" ] && font="${t#font -- }"
-                    ;;
-            esac
+    
+    # Read data from the co-process in a loop, stop when getting nothing.
+    while read t <&"${COPROC[0]}"; do
+        case "$t" in
+            'preview_text -- '*)
+                [ -n "${t#preview_text -- }" ] && PREVIEW_TEXT="${t#preview_text -- }"
+                ;;
+            'font -- '*)
+                [ -n "${t#font -- }" ] && font="${t#font -- }"
+                ;;
+        esac
 
         # Exit if nothing is returned by fzf, which also means that the user
         # has pressed [ESCAPE]
@@ -120,23 +130,27 @@ main(){
 
         generate_preview "$font"
 
-        if [ $FIRST_RUN == true ] || [ $(ps -p $(cat $PIDFILE) | tail -1 | awk '{print $4}') != sxiv ]; then
+	if [ $FIRST_RUN == true ] || [ $(ps -p $(cat $PIDFILE) | tail -1 | awk '{print $4}') != sxiv ]; then
             FIRST_RUN=false
 
             # Display the font preview using sxiv
             #sxiv -g "$SIZE$POSITION" "$FONT_PREVIEW" -N "fontpreview" -b &
             sxiv -N "fontpreview" -b -g "$SIZE$POSITION" "$FONT_PREVIEW" &
 
-            # Change focus from sxiv, back to the terminal window
+	    # Change focus from sxiv, back to the terminal window
             # so that user can continue to search for fonts without
             # having to manually change focus back to the terminal window
             xdotool windowfocus "$(cat "$TERMWIN_IDFILE")"
 
-            # Save the process ID so that we can kill
+  	    # Save the process ID so that we can kill
             # sxiv when the user exits the script
             echo $! >"$PIDFILE"
     	fi
-done
+    done
+
+    # Close file descriptors
+    exec {COPROC[0]}>&-
+    exec {COPROC[1]}>&-
 }
 
 # Disable CTRL-Z because if we allowed this key press,
