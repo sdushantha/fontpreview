@@ -66,18 +66,13 @@ generate_preview(){
 
 main(){
     # Checkig if needed dependencies are installed
-    type -p xdotool &>/dev/null || {
-        echo "error: Could not find 'xdotool', is it installed?"
-        return
-    }
-    type -p sxiv &>/dev/null || {
-        echo "error: Could not find 'sxiv', is it installed?"
-        return
-    }
-    type -p convert &>/dev/null || {
-        echo "error: Could not find 'imagemagick', is it installed?"
-        return
-    }
+    dependencies=(xdotool sxiv convert fzf)
+    for dependency in "${dependencies[@]}"; do
+        type -p "$dependency" &>/dev/null || {
+            echo "error: Could not find '${dependency}', is it installed?" >&2
+            exit 1
+        }
+    done
 
     # Checking for enviornment variables which the user might have set.
     # This config file for fontpreview is pretty much the bashrc, zshrc, etc
