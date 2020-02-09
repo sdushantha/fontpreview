@@ -77,6 +77,10 @@ main(){
         echo "error: Could not find 'imagemagick', is it installed?"
         return
     }
+    type -p xclip &>/dev/null || {
+        echo "error: Could not find 'xclip', is it installed?"
+        return
+    }
 
     # Checking for enviornment variables which the user might have set.
     # This config file for fontpreview is pretty much the bashrc, zshrc, etc
@@ -99,7 +103,7 @@ main(){
     # Flag to run some commands only once in the loop
     FIRST_RUN=true
     font=$(convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | head -1)
-    coproc { convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT" --bind 'ctrl-t:execute(echo preview_text -- $( printf "%s\n" "<Input and ENTER>" | fzf --print-query --bind="ctrl-t:abort" | tail -1 ) ),enter:execute(echo font -- {})'; }
+    coproc { convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT" --bind 'ctrl-t:execute(echo preview_text -- $( printf "%s\n" "<Input and ENTER>" | fzf --print-query --bind="ctrl-t:abort" | tail -1 ) ),ctrl-y:execute(echo -n {} | xclip -selection clipboard),enter:execute(echo font -- {})'; }
     	while read t <&"${COPROC[0]}"; do
     	    case "$t" in
 	        'preview_text -- '*)
