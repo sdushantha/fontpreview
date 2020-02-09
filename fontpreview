@@ -111,7 +111,17 @@ main(){
     # will get data: "font -- <font name>"
     # Jump into a new fzf page to edit PREVIEW_TEXT if you press [Ctrl-t] in the
     # fzf page of font selection.
-    coproc { convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT" --bind 'ctrl-t:execute(echo preview_text -- $( printf "%s\n" "<Input and ENTER>" | fzf --print-query --bind="ctrl-t:abort" | tail -1 ) ),ctrl-y:execute(echo -n {} | xclip -selection clipboard),enter:execute(echo font -- {})'; }
+
+    _fzf_bind_copy_name='ctrl-y:execute(echo -n {} | xclip -selection clipboard)'
+    _fzf_bind_echo_name='enter:execute(echo font -- {})'
+    _fzf_bind_edit_preview_text='ctrl-t:execute(echo preview_text -- $( printf "%s\n" "<Input and ENTER>" | fzf --print-query --bind="ctrl-t:abort" | tail -1 ) )'
+    _fzf_bind_tog_preview='ctrl-w:toggle-preview'
+
+    _fzf_preview="{convert -list font | sed -n '/Font: {}$/,+5p'}"
+    _fzf_preview_opt="up:30%:wrap:hidden"
+
+    coproc { convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT" --preview="$_fzf_preview" --preview-window="$_fzf_preview_opt" --bind="$_fzf_bind_copy_name,$_fzf_bind_echo_name,$_fzf_bind_edit_preview_text,$_fzf_bind_tog_preview"; }
+    
     
     # Read data from the co-process in a loop, stop when getting nothing.
     while read t <&"${COPROC[0]}"; do
@@ -147,10 +157,6 @@ main(){
             echo $! >"$PIDFILE"
     	fi
     done
-
-    # Close file descriptors
-    exec {COPROC[0]}>&-
-    exec {COPROC[1]}>&-
 }
 
 # Disable CTRL-Z because if we allowed this key press,
