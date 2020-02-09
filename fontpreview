@@ -50,7 +50,9 @@ pre_exit() {
     # exit this script, an error will be shown
     # from kill and we dont want that
     kill -9 "$(cat "$PIDFILE" 2>/dev/null)" &> /dev/null
- 
+
+    # Delete tempfiles, so we don't leave useless files behind.
+    rm -rf "$FONTPREVIEW_DIR"
 }
 
 generate_preview(){
