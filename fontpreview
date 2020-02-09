@@ -98,11 +98,17 @@ main(){
 
     # Flag to run some commands only once in the loop
     FIRST_RUN=true
-
-    while true; do
-        # List out all the fonts which imagemagick is able to find, extract
-        # the font names and then pass them to fzf
-        font=$(convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT")
+    font=$(convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | head -1)
+    coproc { convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT" --bind 'ctrl-t:execute(echo preview_text -- $( printf "%s\n" "<Input and ENTER>" | fzf --print-query --bind="ctrl-t:abort" | tail -1 ) ),enter:execute(echo font -- {})'; }
+    	while read t <&"${COPROC[0]}"; do
+    	    case "$t" in
+	        'preview_text -- '*)
+                    [ -n "${t#preview_text -- }" ] && PREVIEW_TEXT="${t#preview_text -- }"
+                    ;;
+                'font -- '*)
+                    [ -n "${t#font -- }" ] && font="${t#font -- }"
+                    ;;
+            esac
 
         # Exit if nothing is returned by fzf, which also means that the user
         # has pressed [ESCAPE]
@@ -110,7 +116,7 @@ main(){
 
         generate_preview "$font"
 
-        if [ $FIRST_RUN == true ]; then
+        if [ $FIRST_RUN == true ] || [ $(ps -p $(cat $PIDFILE) | tail -1 | awk '{print $4}') != sxiv ]; then
             FIRST_RUN=false
 
             # Display the font preview using sxiv
@@ -126,7 +132,7 @@ main(){
             # sxiv when the user exits the script
             echo $! >"$PIDFILE"
     	fi
-    done
+done
 }
 
 # Disable CTRL-Z because if we allowed this key press,
