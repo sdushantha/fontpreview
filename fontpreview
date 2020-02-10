@@ -52,7 +52,7 @@ pre_exit() {
     # exit this script, an error will be shown
     # from kill and we dont want that
     kill -9 "$(cat "$PIDFILE" 2>/dev/null)" &> /dev/null
-
+    
     # Delete tempfiles, so we don't leave useless files behind.
     rm -rf "$FONTPREVIEW_DIR"
 }
@@ -70,8 +70,9 @@ generate_preview(){
 
 generate_zip_preview(){
     # Credits: https://bit.ly/2UvLVhM
-    unzip -p $ZIPFILE $1 | \
-    convert - -size $SIZE \
+    FONTFILE="$FONTPREVIEW_DIR/${1#*/}"
+    unzip -p $ZIPFILE $1 > $FONTFILE
+    convert $FONTFILE -size $SIZE \
         -gravity center \
         -fill "$FG_COLOR" \
         -flatten "$FONT_PREVIEW" 
@@ -119,7 +120,7 @@ main(){
 	    FONTLIST=$(convert -list font | awk -F: '/^[ ]*Font: /{print substr($NF,2)}')
 	else
 	    # If yes list fonts in ZIPFILE
-	    FONTLIST=$(unzip -l comic-jens.zip  | grep '[ot]tf' | awk '{print $4}')
+	    FONTLIST=$(unzip -l $ZIPFILE  | grep '[ot]tf' | awk '{print $4}')
 	fi    
 	    
         # List out all the fonts which imagemagick is able to find, extract
