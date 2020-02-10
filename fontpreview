@@ -70,7 +70,7 @@ generate_preview(){
 
 generate_zip_preview(){
     # Credits: https://bit.ly/2UvLVhM
-    FONTFILE="$FONTPREVIEW_DIR/${1#*/}"
+    FONTFILE="$FONTPREVIEW_DIR/$(basename $1)"
     unzip -p $ZIPFILE $1 > $FONTFILE
     convert $FONTFILE -size $SIZE \
         -gravity center \
