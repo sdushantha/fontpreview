@@ -24,7 +24,7 @@ PREVIEW_TEXT="ABCDEFGHIJKLM\nNOPQRSTUVWXYZ\nabcdefghijklm\nnopqrstuvwxyz\n123456
 show_help() {
     echo "usage: fontpreview [-h] [--size \"px\"] [--position \"+x+y\"] [--search-prompt SEARCH_PROMPT]"
     echo "                   [--font-size \"FONT_SIZE\"] [--bg-color \"BG_COLOR\"] [--fg-color \"FG_COLOR\"]"
-    echo "                   [--preview-text \"PREVIEW_TEXT\"] [--version]"
+    echo "                   [--preview-text \"PREVIEW_TEXT\"] [-i font.otf] [-o preview.png] [--version]"
     echo " "
     echo "┌─┐┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐┬  ┬┬┌─┐┬ ┬"
     echo "├┤ │ ││││ │ ├─┘├┬┘├┤ └┐┌┘│├┤ │││"
@@ -33,6 +33,8 @@ show_help() {
     echo " "
     echo "optional arguments:"
     echo "   -h, --help            show this help message and exit"
+    echo "   -i, --input           filename of the input font (.otf, .ttf, .woff are supported)"
+    echo "   -o, --output          filename of the output preview image (input.png if not set)"
     echo "   --size                size of the font preview window"
     echo "   --position            the position where the font preview window should be displayed"
     echo "   --search-prompt       input prompt of fuzzy searcher"
@@ -40,7 +42,7 @@ show_help() {
     echo "   --bg-color            background color of the font preview window"
     echo "   --fg-color            foreground color of the font preview window"
     echo "   --preview-text        preview text that should be displayed in the font preview window"
-    echo "   --version             show the version of kunst you are using"
+    echo "   --version             show the version of fontpreview you are using"
 }
 
 pre_exit() {
