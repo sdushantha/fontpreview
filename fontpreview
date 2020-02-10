@@ -59,24 +59,29 @@ pre_exit() {
 
 generate_preview(){
     # Credits: https://bit.ly/2UvLVhM
+    echo $1 >&2
     convert -size $SIZE xc:"$BG_COLOR" \
         -gravity center \
         -pointsize $FONT_SIZE \
         -font "$1" \
         -fill "$FG_COLOR" \
         -annotate +0+0 "$PREVIEW_TEXT" \
-        -flatten "$FONT_PREVIEW"
+        -flatten "$FONT_PREVIEW" &> /tmp/convert.log
 }
 
-generate_zip_preview(){
-    # Credits: https://bit.ly/2UvLVhM
-    FONTFILE="$FONTPREVIEW_DIR/$(basename $1)"
-    unzip -p $ZIPFILE $1 > $FONTFILE
-    convert $FONTFILE -size $SIZE \
-        -gravity center \
-        -fill "$FG_COLOR" \
-        -flatten "$FONT_PREVIEW" 
-}
+# generate_zip_preview(){
+#     # Credits: https://bit.ly/2UvLVhM
+#     FONT_FILE="$FONTPREVIEW_DIR/$(basename $1)"
+#     unzip -p $ZIPFILE $1 > $FONT_FILE
+#     convert -size $SIZE  xc:"$BG_COLOR" \
+#         -gravity center \
+#         -pointsize $FONT_SIZE \
+#         -font "$FONT_FILE" \
+#         -fill "$FG_COLOR" \
+#         -annotate +0+0 "$PREVIEW_TEXT" \
+#         -fill "$FG_COLOR" \
+#         -flatten "$FONT_PREVIEW" 
+# }
 
 
 
@@ -132,13 +137,16 @@ main(){
         [[ -z $font ]] && return
 
 	#########
-	## Generate Preview
+	## Generate Previewfont
 	# Check if zipfile is provided
-	if [ -z $ZIPFILE ] ; then
-            generate_preview "$font"
-	else
-            generate_zip_preview "$font"	    
+	if [ ! -z $ZIPFILE ] ; then
+	    # Unzip Font
+	    FONTFILE="$FONTPREVIEW_DIR/$(basename $font)"
+	    unzip -p $ZIPFILE $font >| $FONTFILE
+	    font=$FONTFILE
 	fi
+
+	generate_preview "$font"
 	    
         if [ $FIRST_RUN == true ]; then
             FIRST_RUN=false
