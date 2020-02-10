@@ -41,8 +41,12 @@ $ mv fontpreview ~/scripts/
 ```
 
 ### AUR package
-For arch based distros, an AUR package is available at https://aur.archlinux.org/packages/fontpreview/
+For Arch based distros, an [AUR package](https://aur.archlinux.org/packages/fontpreview/) is available at 
 
+Maintained by **[@elsorino](https://github.com/elsorino)**
+```bash
+yay -Sy fontpreview 
+```
 ## Usage
 ```
 $ fontpreview --help
@@ -97,6 +101,7 @@ export FONTPREVIEW_PREVIEW_TEXT="ABCDEFGHIJKLM\nNOPQRSTUVWXYZ\nabcdefghijklm\nno
 
 ## Tips
 It is recommended to have the preview window floating. So if you use i3wm or a variant, put this in your config:
+
 ```
 for_window [instance="fontpreview"] floating enable
 ```

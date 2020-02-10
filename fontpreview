@@ -6,10 +6,11 @@
 
 # Use mktemp to create temporary files that won't
 # collide with any other application's tmp files.
-PIDFILE="$(mktemp --tmpdir fontpreview_XXXXXXXX.pid)"
-FONT_PREVIEW="$(mktemp --tmpdir fontpreview_XXXXXXXX.png)"
-TERMWIN_IDFILE="$(mktemp --tmpdir fontpreview_XXXXXXXX.termpid)"
-VERSION=1.0.0
+FONTPREVIEW_DIR="$(mktemp -d --tmpdir fontpreview_dir_XXXXXXXX)"
+PIDFILE="$(mktemp --tmpdir="$FONTPREVIEW_DIR" fontpreview_XXXXXXXX.pid)"
+FONT_PREVIEW="$(mktemp --tmpdir="$FONTPREVIEW_DIR" fontpreview_XXXXXXXX.png)"
+TERMWIN_IDFILE="$(mktemp --tmpdir="$FONTPREVIEW_DIR" fontpreview_XXXXXXXX.termpid)"
+VERSION=1.0.3
 
 CACHE_DIR="$HOME/.cache/fontpreview"
 PREVIEW_TEXT_FILE="$CACHE_DIR/preview_text"
@@ -52,7 +53,9 @@ pre_exit() {
     # exit this script, an error will be shown
     # from kill and we dont want that
     kill -9 "$(cat "$PIDFILE" 2>/dev/null)" &> /dev/null
- 
+
+    # Delete tempfiles, so we don't leave useless files behind.
+    rm -rf "$FONTPREVIEW_DIR"
 }
 
 generate_preview(){
@@ -67,26 +70,18 @@ generate_preview(){
 }
 
 main(){
-    # Checkig if needed dependencies are installed
-    type -p xdotool &>/dev/null || {
-        echo "error: Could not find 'xdotool', is it installed?"
-        return
-    }
-    type -p sxiv &>/dev/null || {
-        echo "error: Could not find 'sxiv', is it installed?"
-        return
-    }
-    type -p convert &>/dev/null || {
-        echo "error: Could not find 'imagemagick', is it installed?"
-        return
-    }
-    type -p xclip &>/dev/null || {
-        echo "error: Could not find 'xclip', is it installed?"
-        return
-    }
-
-	[ -d "$CACHE_DIR" ] || mkdir -p "$CACHE_DIR"
-	[ -f "$PREVIEW_TEXT_FILE" ] || echo "$PREVIEW_TEXT" > "$PREVIEW_TEXT_FILE"
+    # Checkig if needed dependencies are installed  
+    dependencies=(xdotool sxiv convert fzf xclip)
+    for dependency in "${dependencies[@]}"; do
+        type -p "$dependency" &>/dev/null || {
+            echo "error: Could not find '${dependency}', is it installed?" >&2
+            exit 1
+        }
+    done
+    
+    # Checking if needed folder or file are created
+    [ -d "$CACHE_DIR" ] || mkdir -p "$CACHE_DIR"
+	  [ -f "$PREVIEW_TEXT_FILE" ] || echo "$PREVIEW_TEXT" > "$PREVIEW_TEXT_FILE"
 
     # Checking for enviornment variables which the user might have set.
     # This config file for fontpreview is pretty much the bashrc, zshrc, etc
@@ -108,17 +103,14 @@ main(){
 
     # Flag to run some commands only once in the loop
     FIRST_RUN=true
+
     
     # Default value of the font
     font=$(convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | head -1)
     
-    # Start a co-process, everytime you press [ENTER], this process will echo
-    # "font -- <font name>" in the background. And the command =read t <&{COPROC[0]}=
-    # will get data: "font -- <font name>"
-    # Jump into a new fzf page to edit PREVIEW_TEXT if you press [Ctrl-t] in the
-    # fzf page of font 
 
-	help_mesg='
+
+	  help_mesg='
         ┌─┐┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐┬  ┬┬┌─┐┬ ┬
         ├┤ │ ││││ │ ├─┘├┬┘├┤ └┐┌┘│├┤ │││
         └  └─┘┘└┘ ┴ ┴  ┴└─└─┘ └┘ ┴└─┘└┴┘
@@ -128,48 +120,55 @@ main(){
 Shortkey:
     Ctrl-y: Copy font name.
     Ctrl-t: Edit PREVIEW_TEXT. {
-			ENTER : Print query.
-			Ctrl-s: Accept selected history.
-			Ctrl-t: Go Back.
-	}
+	      ENTER : Print query.
+	      Ctrl-s: Accept selected history.
+	      Ctrl-t: Go Back.
+    }
     Ctrl-i: Toggle fonts basic infomation page.
     Ctrl-h: Toggle help.
     Enter : Preview selected font.'
 
-	# The items in this menu shouldn't have any space.
-	extra_menu=(
-		copy_font_info
-	)
+	  # The items in this menu shouldn't have any space.
+	  extra_menu=(
+		    copy_font_info
+	  )
 
     _fzf_bind_copy_name='ctrl-y:execute(echo -n {} | xclip -selection clipboard)'
     _fzf_bind_echo_name='enter:execute(echo font -- {})'
-    _fzf_bind_edit_preview_text="ctrl-t:execute(echo preview_text -- \$( cat \"$PREVIEW_TEXT_FILE\"  | fzf --bind=\"ctrl-t:abort,ctrl-s:accept,enter:print-query\" ) )"
+    _fzf_bind_edit_preview_text="ctrl-t:execute(echo -E preview_text -- \$( cat \"$PREVIEW_TEXT_FILE\"  | fzf --bind=\"ctrl-t:abort,ctrl-s:accept,enter:print-query\" ) )"
     _fzf_bind_tog_preview='ctrl-i:toggle-preview'
     _fzf_bind_help_mesg="ctrl-h:execute( echo \$( printf '%s\n' \"${extra_menu[@]}\" | fzf --preview='{echo \"$help_mesg\"}' --preview-window=top:60%:wrap --bind='ctrl-h:abort') -- {})"
 
-    _fzf_preview="{convert -list font | sed -n '/Font: {}$/,+5p'}"
+    _fzf_preview="{convert -list font | sed -n '/^[ ]*Font: {}$/,+5p'}"
     _fzf_preview_opt="up:30%:wrap:hidden"
-	_fzf_header="Hit <Ctrl-h> to see help"
-	
-    coproc { convert -list font | awk -F: '/^\s *Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT" --header="$_fzf_header" --preview="$_fzf_preview" --preview-window="$_fzf_preview_opt" --bind="$_fzf_bind_copy_name,$_fzf_bind_echo_name,$_fzf_bind_edit_preview_text,$_fzf_bind_tog_preview,$_fzf_bind_help_mesg"; }
+	  _fzf_header="Hit <Ctrl-h> to see help"
+	  
+    # Start a co-process, everytime you press [ENTER], this process will echo
+    # "font -- <font name>" in the background. And the command =read t <&{COPROC[0]}=
+    # will get data: "font -- <font name>"
+    # Jump into a new fzf page to edit PREVIEW_TEXT if you press [Ctrl-t] in the
+    # fzf page of font 
+    # List out all the fonts which imagemagick is able to find, extract
+    # the font names and then pass them to fzf
+    coproc { convert -list font | awk -F: '/^[ ]*Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT" --header="$_fzf_header" --preview="$_fzf_preview" --preview-window="$_fzf_preview_opt" --bind="$_fzf_bind_copy_name,$_fzf_bind_echo_name,$_fzf_bind_edit_preview_text,$_fzf_bind_tog_preview,$_fzf_bind_help_mesg"; }
     
     # Read data from the co-process in a loop, stop when getting nothing.
-    while read t <&"${COPROC[0]}"; do
+    while read -r t <&"${COPROC[0]}"; do
         case "$t" in
             'preview_text -- '*)
                 [ -n "${t#preview_text -- }" ] && PREVIEW_TEXT="${t#preview_text -- }"
-				grep -F "$PREVIEW_TEXT" "$PREVIEW_TEXT_FILE" > /dev/null || echo "$PREVIEW_TEXT" >> "$PREVIEW_TEXT_FILE"
-				;;
+				        grep -F "$PREVIEW_TEXT" "$PREVIEW_TEXT_FILE" > /dev/null || echo "$PREVIEW_TEXT" >> "$PREVIEW_TEXT_FILE"
+				        ;;
             'font -- '*)
                 [ -n "${t#font -- }" ] && font="${t#font -- }"
                 ;;
-			'copy_font_info -- '*)
-				[ -n "${t#copy_font_info -- }" ] && convert -list font | sed -n "/Font: ${t#copy_font_info -- }\$/,+5p" | xclip -sel clip
-				continue
-				;;
-			*)
-				continue
-				;;
+			      'copy_font_info -- '*)
+				        [ -n "${t#copy_font_info -- }" ] && convert -list font | sed -n "/^[ ]*Font: ${t#copy_font_info -- }\$/,+5p" | xclip -sel clip
+				        continue
+				        ;;
+			      *)
+				        continue
+				        ;;
         esac
 		
         # Exit if nothing is returned by fzf, which also means that the user
@@ -193,7 +192,26 @@ Shortkey:
   			# Save the process ID so that we can kill
             # sxiv when the user exits the script
             echo $! >"$PIDFILE"
-    	fi
+
+	# Check for crashes of sxvi   
+	elif [ -f $PIDFILE ] ; then
+	    PID=$(cat $PIDFILE)
+	    if  [ ! -e /proc/$PID ] ; then
+		echo "Restart sxvi - You maybe using a obsolete version. " >&2
+		# Display the font preview using sxiv
+		sxiv -g "$SIZE$POSITION" "$FONT_PREVIEW" -N "fontpreview" -b &
+		
+		# Change focus from sxiv, back to the terminal window
+		# so that user can continue to search for fonts without
+		# having to manually change focus back to the terminal window
+		xdotool windowfocus "$(cat "$TERMWIN_IDFILE")"
+		
+		# Save the process ID so that we can kill
+		# sxiv when the user exits the script
+		echo $! >"$PIDFILE"
+	    fi
+
+	fi
     done
 }
 
