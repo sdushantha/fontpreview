@@ -65,7 +65,7 @@ generate_preview(){
         -font "$1" \
         -fill "$FG_COLOR" \
         -annotate +0+0 "$PREVIEW_TEXT" \
-        -flatten "$FONT_PREVIEW" &> /tmp/convert.log
+        -flatten "$FONT_PREVIEW" 
 }
 
 
