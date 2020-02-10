@@ -154,7 +154,7 @@ main(){
 	    if  [ ! -e /proc/$PID ] ; then
 		echo "Restart sxvi - You maybe using a obsolete version. " >&2
 		# Display the font preview using sxiv
-		sxiv -g "$SIZE$POSITION" "$FONT_PREVIEW" -N "ifontpreview" -b &
+		sxiv -g "$SIZE$POSITION" "$FONT_PREVIEW" -N "fontpreview" -b &
 		
 		# Change focus from sxiv, back to the terminal window
 		# so that user can continue to search for fonts without
