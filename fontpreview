@@ -25,6 +25,7 @@ show_help() {
     echo "usage: fontpreview [-h] [--size \"px\"] [--position \"+x+y\"] [--search-prompt SEARCH_PROMPT]"
     echo "                   [--font-size \"FONT_SIZE\"] [--bg-color \"BG_COLOR\"] [--fg-color \"FG_COLOR\"]"
     echo "                   [--preview-text \"PREVIEW_TEXT\"] [--version]"
+    echo "                   [fontarchive.zip]"
     echo " "
     echo "┌─┐┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐┬  ┬┬┌─┐┬ ┬"
     echo "├┤ │ ││││ │ ├─┘├┬┘├┤ └┐┌┘│├┤ │││"
@@ -41,6 +42,7 @@ show_help() {
     echo "   --fg-color            foreground color of the font preview window"
     echo "   --preview-text        preview text that should be displayed in the font preview window"
     echo "   --version             show the version of kunst you are using"
+    echo "   fontarchive.zip       show fonts contained in archive instead of installed fonts."
 }
 
 pre_exit() {
@@ -65,6 +67,17 @@ generate_preview(){
         -annotate +0+0 "$PREVIEW_TEXT" \
         -flatten "$FONT_PREVIEW"
 }
+
+generate_zip_preview(){
+    # Credits: https://bit.ly/2UvLVhM
+    unzip -p $ZIPFILE $1 | \
+    convert - -size $SIZE \
+        -gravity center \
+        -fill "$FG_COLOR" \
+        -flatten "$FONT_PREVIEW" 
+}
+
+
 
 main(){
     # Checkig if needed dependencies are installed
@@ -98,16 +111,34 @@ main(){
     FIRST_RUN=true
 
     while true; do
+	#########
+	# Create Fontlist
+	# Check if zipfile is provided
+	if [ -z $ZIPFILE ] ; then
+	    # If not list installed fonts
+	    FONTLIST=$(convert -list font | awk -F: '/^[ ]*Font: /{print substr($NF,2)}')
+	else
+	    # If yes list fonts in ZIPFILE
+	    FONTLIST=$(unzip -l comic-jens.zip  | grep '[ot]tf' | awk '{print $4}')
+	fi    
+	    
         # List out all the fonts which imagemagick is able to find, extract
         # the font names and then pass them to fzf
-        font=$(convert -list font | awk -F: '/^[ ]*Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT")
+        font=$(echo -e $FONTLIST | sed 's/ /\n/g' | fzf --prompt="$SEARCH_PROMPT")
 
         # Exit if nothing is returned by fzf, which also means that the user
         # has pressed [ESCAPE]
         [[ -z $font ]] && return
 
-        generate_preview "$font"
-
+	#########
+	## Generate Preview
+	# Check if zipfile is provided
+	if [ -z $ZIPFILE ] ; then
+            generate_preview "$font"
+	else
+            generate_zip_preview "$font"	    
+	fi
+	    
         if [ $FIRST_RUN == true ]; then
             FIRST_RUN=false
 
@@ -130,7 +161,7 @@ main(){
 	    if  [ ! -e /proc/$PID ] ; then
 		echo "Restart sxvi - You maybe using a obsolete version. " >&2
 		# Display the font preview using sxiv
-		sxiv -g "$SIZE$POSITION" "$FONT_PREVIEW" -N "fontpreview" -b &
+		sxiv -g "$SIZE$POSITION" "$FONT_PREVIEW" -N "ifontpreview" -b &
 		
 		# Change focus from sxiv, back to the terminal window
 		# so that user can continue to search for fonts without
@@ -197,4 +228,8 @@ while true; do
     esac
     shift
 done
+## Check for zipfile
+if [ ! -z $1 ] && [[ $1 =~ '.zip' ]] ; then
+    ZIPFILE=$1
+fi    
 main
