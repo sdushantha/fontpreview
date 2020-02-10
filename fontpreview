@@ -59,7 +59,6 @@ pre_exit() {
 
 generate_preview(){
     # Credits: https://bit.ly/2UvLVhM
-    echo $1 >&2
     convert -size $SIZE xc:"$BG_COLOR" \
         -gravity center \
         -pointsize $FONT_SIZE \
@@ -68,21 +67,6 @@ generate_preview(){
         -annotate +0+0 "$PREVIEW_TEXT" \
         -flatten "$FONT_PREVIEW" &> /tmp/convert.log
 }
-
-# generate_zip_preview(){
-#     # Credits: https://bit.ly/2UvLVhM
-#     FONT_FILE="$FONTPREVIEW_DIR/$(basename $1)"
-#     unzip -p $ZIPFILE $1 > $FONT_FILE
-#     convert -size $SIZE  xc:"$BG_COLOR" \
-#         -gravity center \
-#         -pointsize $FONT_SIZE \
-#         -font "$FONT_FILE" \
-#         -fill "$FG_COLOR" \
-#         -annotate +0+0 "$PREVIEW_TEXT" \
-#         -fill "$FG_COLOR" \
-#         -flatten "$FONT_PREVIEW" 
-# }
-
 
 
 main(){
