@@ -110,17 +110,32 @@ main(){
     # "font -- <font name>" in the background. And the command =read t <&{COPROC[0]}=
     # will get data: "font -- <font name>"
     # Jump into a new fzf page to edit PREVIEW_TEXT if you press [Ctrl-t] in the
-    # fzf page of font selection.
+    # fzf page of font 
+
+	help_mesg='
+        ┌─┐┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐┬  ┬┬┌─┐┬ ┬
+        ├┤ │ ││││ │ ├─┘├┬┘├┤ └┐┌┘│├┤ │││
+        └  └─┘┘└┘ ┴ ┴  ┴└─└─┘ └┘ ┴└─┘└┴┘
+
+-- Very customizable and minimal font previewer written in bash --
+
+Shortkey:
+    Ctrl-y: copy font name.
+    Ctrl-t: Edit PREVIEW_TEXT.
+    Ctrl-i: Toggle fonts basic infomation page.
+    Ctrl-h: Toggle help.
+    Enter : Preview selected font.'
 
     _fzf_bind_copy_name='ctrl-y:execute(echo -n {} | xclip -selection clipboard)'
     _fzf_bind_echo_name='enter:execute(echo font -- {})'
     _fzf_bind_edit_preview_text='ctrl-t:execute(echo preview_text -- $( printf "%s\n" "<Input and ENTER>" | fzf --print-query --bind="ctrl-t:abort" | tail -1 ) )'
-    _fzf_bind_tog_preview='ctrl-w:toggle-preview'
+    _fzf_bind_tog_preview='ctrl-i:toggle-preview'
+	_fzf_bind_help_mesg="ctrl-h:execute(eval echo |fzf --preview='{echo -e \"$help_mesg\"}' --preview-window=top:99%:wrap --bind="ctrl-h:abort")"
 
     _fzf_preview="{convert -list font | sed -n '/Font: {}$/,+5p'}"
     _fzf_preview_opt="up:30%:wrap:hidden"
 
-    coproc { convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT" --preview="$_fzf_preview" --preview-window="$_fzf_preview_opt" --bind="$_fzf_bind_copy_name,$_fzf_bind_echo_name,$_fzf_bind_edit_preview_text,$_fzf_bind_tog_preview"; }
+    coproc { convert -list font | awk -F: '/^\s *Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT" --header="Hit <Ctrl-h> to see help" --preview="$_fzf_preview" --preview-window="$_fzf_preview_opt" --bind="$_fzf_bind_copy_name,$_fzf_bind_echo_name,$_fzf_bind_edit_preview_text,$_fzf_bind_tog_preview,$_fzf_bind_help_mesg"; }
     
     
     # Read data from the co-process in a loop, stop when getting nothing.
@@ -132,6 +147,9 @@ main(){
             'font -- '*)
                 [ -n "${t#font -- }" ] && font="${t#font -- }"
                 ;;
+			*)
+				continue
+				;;
         esac
 
         # Exit if nothing is returned by fzf, which also means that the user
@@ -139,20 +157,20 @@ main(){
         [[ -z $font ]] && return
 
         generate_preview "$font"
-
-	if [ $FIRST_RUN == true ] || [ $(ps -p $(cat $PIDFILE) | tail -1 | awk '{print $4}') != sxiv ]; then
+		
+		if [ $FIRST_RUN == true ] || [ $(ps -p $(cat $PIDFILE) | tail -1 | awk '{print $4}') != sxiv ]; then
             FIRST_RUN=false
 
             # Display the font preview using sxiv
             #sxiv -g "$SIZE$POSITION" "$FONT_PREVIEW" -N "fontpreview" -b &
             sxiv -N "fontpreview" -b -g "$SIZE$POSITION" "$FONT_PREVIEW" &
 
-	    # Change focus from sxiv, back to the terminal window
+			# Change focus from sxiv, back to the terminal window
             # so that user can continue to search for fonts without
             # having to manually change focus back to the terminal window
             xdotool windowfocus "$(cat "$TERMWIN_IDFILE")"
-
-  	    # Save the process ID so that we can kill
+			
+  			# Save the process ID so that we can kill
             # sxiv when the user exits the script
             echo $! >"$PIDFILE"
     	fi
