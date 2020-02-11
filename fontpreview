@@ -124,19 +124,19 @@ main(){
             # sxiv when the user exits the script
             echo $! >"$PIDFILE"
 
-	# Check for crashes of sxvi   
+	# Check for crashes of sxvi
 	elif [ -f $PIDFILE ] ; then
 	    PID=$(cat $PIDFILE)
 	    if  [ ! -e /proc/$PID ] ; then
 		echo "Restart sxvi - You maybe using a obsolete version. " >&2
 		# Display the font preview using sxiv
 		sxiv -g "$SIZE$POSITION" "$FONT_PREVIEW" -N "fontpreview" -b &
-		
+
 		# Change focus from sxiv, back to the terminal window
 		# so that user can continue to search for fonts without
 		# having to manually change focus back to the terminal window
 		xdotool windowfocus "$(cat "$TERMWIN_IDFILE")"
-		
+
 		# Save the process ID so that we can kill
 		# sxiv when the user exits the script
 		echo $! >"$PIDFILE"
@@ -158,7 +158,7 @@ options=$(getopt -o h --long position:,size:,version,search-prompt:,font-size:,b
 eval set -- "$options"
 
 while true; do
-    case "$1" in 
+    case "$1" in
         --size)
             shift;
             FONTPREVIEW_SIZE=$2
