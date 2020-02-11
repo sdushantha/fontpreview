@@ -102,7 +102,7 @@ main(){
 
         generate_preview "$font"
 
-        if [ $FIRST_RUN == true ]; then
+        if [[ $FIRST_RUN == true ]]; then
             FIRST_RUN=false
 
             # Display the font preview using sxiv
@@ -119,9 +119,9 @@ main(){
             echo $! >"$PIDFILE"
 
 	# Check for crashes of sxvi
-	elif [ -f $PIDFILE ] ; then
+	elif [[ -f $PIDFILE ]] ; then
 	    PID=$(cat $PIDFILE)
-	    if  [ ! -e /proc/$PID ] ; then
+	    if  [[ ! -e /proc/$PID ]] ; then
 		echo "Restart sxvi - You maybe using a obsolete version. " >&2
 		# Display the font preview using sxiv
 		sxiv -g "$SIZE$POSITION" -N "fontpreview" -b "$FONT_PREVIEW" &
