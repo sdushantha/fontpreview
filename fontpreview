@@ -160,11 +160,11 @@ eval set -- "$options"
 while true; do
     case "$1" in
         --size)
-            shift;
+            shift
             FONTPREVIEW_SIZE=$2
             ;;
         --position)
-            shift;
+            shift
             FONTPREVIEW_POSITION=$2
             ;;
         -h|--help)
