@@ -120,8 +120,7 @@ main(){
 
 	# Check for crashes of sxvi
 	elif [[ -f $PIDFILE ]] ; then
-	    PID=$(cat $PIDFILE)
-	    if  [[ ! -e /proc/$PID ]] ; then
+	    if ! pgrep -F "$PIDFILE"; then
 		echo "Restart sxvi - You maybe using a obsolete version. " >&2
 		# Display the font preview using sxiv
 		sxiv -g "$SIZE$POSITION" -N "fontpreview" -b "$FONT_PREVIEW" &
