@@ -10,7 +10,12 @@ FONTPREVIEW_DIR="$(mktemp -d --tmpdir fontpreview_dir_XXXXXXXX)"
 PIDFILE="$(mktemp --tmpdir="$FONTPREVIEW_DIR" fontpreview_XXXXXXXX.pid)"
 FONT_PREVIEW="$(mktemp --tmpdir="$FONTPREVIEW_DIR" fontpreview_XXXXXXXX.png)"
 TERMWIN_IDFILE="$(mktemp --tmpdir="$FONTPREVIEW_DIR" fontpreview_XXXXXXXX.termpid)"
+export SHOW_HELP_FLAG_FILE="$(mktemp --tmpdir="$FONTPREVIEW_DIR" fontpreview_help_flag_XXXXXXXX)" 
 VERSION=1.0.3
+
+BASH="$(which bash)"
+CACHE_DIR="$HOME/.cache/fontpreview"
+PREVIEW_TEXT_FILE="$CACHE_DIR/preview_text"
 
 # Default values
 SEARCH_PROMPT="❯ "
@@ -66,15 +71,45 @@ generate_preview(){
         -flatten "$FONT_PREVIEW"
 }
 
+fzf_preview() {
+    help_mesg='┌─┐┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐┬  ┬┬┌─┐┬ ┬
+├┤ │ ││││ │ ├─┘├┬┘├┤ └┐┌┘│├┤ │││
+└  └─┘┘└┘ ┴ ┴  ┴└─└─┘ └┘ ┴└─┘└┴┘
+    
+-- Very customizable and minimal font previewer written in bash --
+    
+Shortkey:
+  Ctrl-y: Copy font name.
+  Ctrl-t: Edit preview text. {
+    ENTER    : Print query.
+    Alt-ENTER: Use selected history item as preview text.
+    Ctrl-t: Go Back.
+    }
+  Ctrl-i: Toggle fonts basic infomation page.
+  Ctrl-h: Toggle help.
+  Enter : Preview selected font.'
+    
+    if [ $(cat "$SHOW_HELP_FLAG_FILE" 2> /dev/null ) -eq 1 ] 2> /dev/null; then
+        echo "$help_mesg"
+    else
+        convert -list font | sed -n "/^[ ]*Font: $@$/,+5p"
+    fi
+}
+
 main(){
     # Checkig if needed dependencies are installed
-    dependencies=(xdotool sxiv convert fzf)
+    dependencies=(xdotool sxiv convert fzf xclip)
     for dependency in "${dependencies[@]}"; do
         type -p "$dependency" &>/dev/null || {
             echo "error: Could not find '${dependency}', is it installed?" >&2
             exit 1
         }
     done
+    
+    # Checking if needed folder or file are created
+    [ -d "$CACHE_DIR" ] || mkdir -p "$CACHE_DIR"
+    [ -f "$PREVIEW_TEXT_FILE" ] || echo "$PREVIEW_TEXT" > "$PREVIEW_TEXT_FILE"
+    echo 0 > "${SHOW_HELP_FLAG_FILE}"
 
     # Checking for enviornment variables which the user might have set.
     # This config file for fontpreview is pretty much the bashrc, zshrc, etc
@@ -97,10 +132,43 @@ main(){
     # Flag to run some commands only once in the loop
     FIRST_RUN=true
 
-    while true; do
-        # List out all the fonts which imagemagick is able to find, extract
-        # the font names and then pass them to fzf
-        font=$(convert -list font | awk -F: '/^[ ]*Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT")
+    # Default value of the font
+    font=$(convert -list font |  awk -F: '/^\s *Font: /{print substr($NF,2)}' | head -1)
+    _fzf_bind_copy_name='ctrl-y:execute(echo -n {} | xclip -selection clipboard)'
+    _fzf_bind_echo_name='enter:execute(echo font -- {})'
+    _fzf_bind_edit_preview_text="ctrl-t:execute(echo -E preview_text -- \$( cat \"$PREVIEW_TEXT_FILE\"  | fzf --bind=\"ctrl-t:abort,alt-enter:accept,enter:print-query\" ) )"
+    _fzf_bind_tog_preview='ctrl-i:toggle-preview'
+    _fzf_bind_tog_help="ctrl-h:execute( [ \$(cat $SHOW_HELP_FLAG_FILE 2> /dev/null ) -eq 1 ] && echo 0 > $SHOW_HELP_FLAG_FILE || echo 1 > $SHOW_HELP_FLAG_FILE )+toggle-preview+toggle-preview"
+
+    _fzf_preview_opt="right:50%:wrap"
+    _fzf_header='Hit Ctrl-h to show help.'
+    
+    export SHELL="$BASH"
+    export -f fzf_preview
+    # Start a co-process, everytime you press [ENTER], this process will echo
+    # "font -- <font name>" in the background. And the command =read t <&{COPROC[0]}=
+    # will get data: "font -- <font name>"
+    # Jump into a new fzf page to edit PREVIEW_TEXT if you press [Ctrl-t] in the
+    # fzf page of font
+    # List out all the fonts which imagemagick is able to find, extract
+    # the font names and then pass them to fzf
+
+    coproc { ( convert -list font | awk -F: '/^[ ]*Font: /{print substr($NF,2)}' ) | fzf --prompt="$SEARCH_PROMPT" --header="$_fzf_header" --preview="fzf_preview {}" --preview-window="$_fzf_preview_opt" --bind="$_fzf_bind_copy_name,$_fzf_bind_echo_name,$_fzf_bind_edit_preview_text,$_fzf_bind_tog_preview,$_fzf_bind_tog_help"; }
+    
+    # Read data from the co-process in a loop, stop when getting nothing.
+    while read -r t <&"${COPROC[0]}"; do
+        case "$t" in
+            'preview_text -- '*)
+                [ -n "${t#preview_text -- }" ] && PREVIEW_TEXT="${t#preview_text -- }"
+                grep -F "$PREVIEW_TEXT" "$PREVIEW_TEXT_FILE" > /dev/null || echo "$PREVIEW_TEXT" >> "$PREVIEW_TEXT_FILE"
+                ;;
+            'font -- '*)
+                [ -n "${t#font -- }" ] && font="${t#font -- }"
+                ;;
+            *)
+                continue
+                ;;
+        esac
 
         # Exit if nothing is returned by fzf, which also means that the user
         # has pressed [ESCAPE]
@@ -108,7 +176,7 @@ main(){
 
         generate_preview "$font"
 
-        if [ $FIRST_RUN == true ]; then
+        if [ $FIRST_RUN == true ] || [ $(ps -p $(cat $PIDFILE) | tail -1 | awk '{print $4}') != sxiv ]; then
             FIRST_RUN=false
 
             # Display the font preview using sxiv
@@ -124,25 +192,25 @@ main(){
             # sxiv when the user exits the script
             echo $! >"$PIDFILE"
 
-	# Check for crashes of sxvi   
-	elif [ -f $PIDFILE ] ; then
-	    PID=$(cat $PIDFILE)
-	    if  [ ! -e /proc/$PID ] ; then
-		echo "Restart sxvi - You maybe using a obsolete version. " >&2
-		# Display the font preview using sxiv
-		sxiv -g "$SIZE$POSITION" "$FONT_PREVIEW" -N "fontpreview" -b &
-		
-		# Change focus from sxiv, back to the terminal window
-		# so that user can continue to search for fonts without
-		# having to manually change focus back to the terminal window
-		xdotool windowfocus "$(cat "$TERMWIN_IDFILE")"
-		
-		# Save the process ID so that we can kill
-		# sxiv when the user exits the script
-		echo $! >"$PIDFILE"
-	    fi
-
-	fi
+            # Check for crashes of sxvi
+            elif [ -f $PIDFILE ] ; then
+            PID=$(cat $PIDFILE)
+            if [ ! -e /proc/$PID ] ; then
+                echo "Restart sxvi - You maybe using a obsolete version. " >&2
+                # Display the font preview using sxiv
+                sxiv -g "$SIZE$POSITION" "$FONT_PREVIEW" -N "fontpreview" -b &
+                
+                # Change focus from sxiv, back to the terminal window
+                # so that user can continue to search for fonts without
+                # having to manually change focus back to the terminal window
+                xdotool windowfocus "$(cat "$TERMWIN_IDFILE")"
+                
+                # Save the process ID so that we can kill
+                # sxiv when the user exits the script
+                echo $! >"$PIDFILE"
+            fi
+            
+        fi
     done
 }
 
@@ -158,7 +226,7 @@ options=$(getopt -o h --long position:,size:,version,search-prompt:,font-size:,b
 eval set -- "$options"
 
 while true; do
-    case "$1" in 
+    case "$1" in
         --size)
             shift;
             FONTPREVIEW_SIZE=$2
