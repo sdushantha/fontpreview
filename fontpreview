@@ -4,12 +4,6 @@
 #
 # Dependencies: sxiv, imagemagick, xdotool, fzf
 
-# Use mktemp to create temporary files that won't
-# collide with any other application's tmp files.
-FONTPREVIEW_DIR="$(mktemp -d --tmpdir fontpreview_dir_XXXXXXXX)"
-PIDFILE="$(mktemp --tmpdir="$FONTPREVIEW_DIR" fontpreview_XXXXXXXX.pid)"
-FONT_PREVIEW="$(mktemp --tmpdir="$FONTPREVIEW_DIR" fontpreview_XXXXXXXX.png)"
-TERMWIN_IDFILE="$(mktemp --tmpdir="$FONTPREVIEW_DIR" fontpreview_XXXXXXXX.termpid)"
 VERSION=1.0.3
 
 # Default values
@@ -152,6 +146,16 @@ main(){
 trap "" SIGTSTP
 
 trap pre_exit EXIT
+
+# Use mktemp to create a temporary directory that won't
+# collide with temporary files of other application.
+FONTPREVIEW_DIR="$(mktemp -d "${TMPDIR:-/tmp}/fontpreview_dir.XXXXXXXX")" || exit
+PIDFILE="$FONTPREVIEW_DIR/fontpreview.pid"
+touch "$PIDFILE" || exit
+FONT_PREVIEW="$FONTPREVIEW_DIR/fontpreview.png"
+touch "$FONT_PREVIEW" || exit
+TERMWIN_IDFILE="$FONTPREVIEW_DIR/fontpreview.termpid"
+touch "$TERMWIN_IDFILE" || exit
 
 # Parse the arguments
 options=$(getopt -o h --long position:,size:,version,search-prompt:,font-size:,bg-color:,fg-color:,preview-text:,help -- "$@")
