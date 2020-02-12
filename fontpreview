@@ -124,11 +124,11 @@ main(){
             # sxiv when the user exits the script
             echo $! >"$PIDFILE"
 
-	# Check for crashes of sxvi   
+	# Check for crashes of sxiv   
 	elif [ -f $PIDFILE ] ; then
 	    PID=$(cat $PIDFILE)
 	    if  [ ! -e /proc/$PID ] ; then
-		echo "Restart sxvi - You maybe using a obsolete version. " >&2
+		echo "Restart sxiv - You maybe using a obsolete version. " >&2
 		# Display the font preview using sxiv
 		sxiv -g "$SIZE$POSITION" "$FONT_PREVIEW" -N "fontpreview" -b &
 		
