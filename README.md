@@ -4,7 +4,7 @@
 that are installed on your machine and preview them. The **fuzzy search** feature
 is provided by `fzf` and the preview is generated with `imagemagick` and then
 displayed using `sxiv`. This tool is **highly customizable**, almost all of the
-variables in this tool can be changed using the commandline flags or you can 
+variables in this tool can be changed using the commandline flags or you can
 configure them using environment variables.
 
 ![](extra/demo.gif)
@@ -17,7 +17,7 @@ configure them using environment variables.
 - `sxiv`
 
 ## Installation
-### Install using ```make```
+### Install using `make`
 ```bash
 # Clone the repo
 $ git clone https://github.com/sdushantha/fontpreview
@@ -41,26 +41,28 @@ $ mv fontpreview ~/scripts/
 ```
 
 ### AUR package
-For Arch based distros, an [AUR package](https://aur.archlinux.org/packages/fontpreview/) is available at 
+For Arch based distros, an [AUR package](https://aur.archlinux.org/packages/fontpreview/) is available at
 
 Maintained by **[@elsorino](https://github.com/elsorino)**
 ```bash
-yay -Sy fontpreview 
+yay -Sy fontpreview
 ```
 ## Usage
 ```
 $ fontpreview --help
 usage: fontpreview [-h] [--size "px"] [--position "+x+y"] [--search-prompt SEARCH_PROMPT]
                    [--font-size "FONT_SIZE"] [--bg-color "BG_COLOR"] [--fg-color "FG_COLOR"]
-                   [--preview-text "PREVIEW_TEXT"] [--version]
- 
+                   [--preview-text "PREVIEW_TEXT"] [-i font.otf] [-o preview.png] [--version]
+
 ┌─┐┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐┬  ┬┬┌─┐┬ ┬
 ├┤ │ ││││ │ ├─┘├┬┘├┤ └┐┌┘│├┤ │││
 └  └─┘┘└┘ ┴ ┴  ┴└─└─┘ └┘ ┴└─┘└┴┘
 Very customizable and minimal font previewer written in bash
- 
+
 optional arguments:
    -h, --help            show this help message and exit
+   -i, --input           filename of the input font (.otf, .ttf, .woff are supported)
+   -o, --output          filename of the output preview image (input.png if not set)
    --size                size of the font preview window
    --position            the position where the font preview window should be displayed
    --search-prompt       input prompt of fuzzy searcher
@@ -68,8 +70,26 @@ optional arguments:
    --bg-color            background color of the font preview window
    --fg-color            foreground color of the font preview window
    --preview-text        preview text that should be displayed in the font preview window
-   --version             show the version of kunst you are using
+   --version             show the version of fontpreview you are using
 ```
+
+If you want to generate a preview image for a **single** font file
+(.otf, .ttf, and .woff are supported), use the `-i` and `-o` option
+to indicate the filename of the input font and the output preview
+image.
+
+```
+$ fontpreview -i font.otf -o preview.png
+```
+
+This can be used with [überzug](https://github.com/seebye/ueberzug)
+to implement font preview within terminal file managers such as
+[vifm](https://vifm.info/).
+
+![](extra/vifm.png)
+
+A detailed setup instructions can be found [here](https://krasjet.com/scribbles/font-preview.html)
+
 
 ## Configure
 You can configure `fontpreview` through environment variables.
