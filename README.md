@@ -40,13 +40,6 @@ $ curl -L https://git.io/raw_fontpreview > fontpreview && chmod +x fontpreview
 $ mv fontpreview ~/scripts/
 ```
 
-### AUR package
-For Arch based distros, an [AUR package](https://aur.archlinux.org/packages/fontpreview/) is available at
-
-Maintained by **[@elsorino](https://github.com/elsorino)**
-```bash
-yay -Sy fontpreview
-```
 ## Usage
 ```
 $ fontpreview --help
