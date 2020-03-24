@@ -158,6 +158,9 @@ touch "$FONT_PREVIEW" || exit
 TERMWIN_IDFILE="$FONTPREVIEW_DIR/fontpreview.termpid"
 touch "$TERMWIN_IDFILE" || exit
 
+font=$1
+shift
+
 # Parse the arguments
 options=$(getopt -o hi:o: --long position:,size:,version,search-prompt:,font-size:,bg-color:,fg-color:,preview-text:,input:,output:,help -- "$@")
 eval set -- "$options"
@@ -208,6 +211,17 @@ while true; do
     esac
     shift
 done
+
+if [ -f "$font" ]; then
+    generate_preview "$font" "$FONT_PREVIEW"
+    # Display the font preview using sxiv
+	# sxiv -g "$SIZE$POSITION" -N "fontpreview" -b "$FONT_PREVIEW" &
+    sxiv -g "$SIZE$POSITION" -N "fontpreview" -b "$FONT_PREVIEW" &
+    # For some strange reason, sxiv just 
+     sleep 0.1
+    exit
+fi
+
 
 if [[ "$input_file" != "" ]] ; then
     if [ -z "$output_file" ] ; then
