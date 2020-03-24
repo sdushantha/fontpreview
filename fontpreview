@@ -16,27 +16,29 @@ FG_COLOR="#000000"
 PREVIEW_TEXT="ABCDEFGHIJKLM\nNOPQRSTUVWXYZ\nabcdefghijklm\nnopqrstuvwxyz\n1234567890\n!@$\%(){}[]"
 
 show_help() {
-    echo "usage: fontpreview [-h] [--size \"px\"] [--position \"+x+y\"] [--search-prompt SEARCH_PROMPT]"
-    echo "                   [--font-size \"FONT_SIZE\"] [--bg-color \"BG_COLOR\"] [--fg-color \"FG_COLOR\"]"
-    echo "                   [--preview-text \"PREVIEW_TEXT\"] [-i font.otf] [-o preview.png] [--version]"
-    echo " "
-    echo "┌─┐┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐┬  ┬┬┌─┐┬ ┬"
-    echo "├┤ │ ││││ │ ├─┘├┬┘├┤ └┐┌┘│├┤ │││"
-    echo "└  └─┘┘└┘ ┴ ┴  ┴└─└─┘ └┘ ┴└─┘└┴┘"
-    echo "Very customizable and minimal font previewer written in bash"
-    echo " "
-    echo "optional arguments:"
-    echo "   -h, --help            show this help message and exit"
-    echo "   -i, --input           filename of the input font (.otf, .ttf, .woff are supported)"
-    echo "   -o, --output          filename of the output preview image (input.png if not set)"
-    echo "   --size                size of the font preview window"
-    echo "   --position            the position where the font preview window should be displayed"
-    echo "   --search-prompt       input prompt of fuzzy searcher"
-    echo "   --font-size           font size"
-    echo "   --bg-color            background color of the font preview window"
-    echo "   --fg-color            foreground color of the font preview window"
-    echo "   --preview-text        preview text that should be displayed in the font preview window"
-    echo "   --version             show the version of fontpreview you are using"
+printf "%s" "\
+usage: fontpreview [-h] [--size \"px\"] [--position \"+x+y\"] [--search-prompt SEARCH_PROMPT]
+                   [--font-size \"FONT_SIZE\"] [--bg-color \"BG_COLOR\"] [--fg-color \"FG_COLOR\"]
+                   [--preview-text \"PREVIEW_TEXT\"] [-i font.otf] [-o preview.png] [--version]
+ 
+┌─┐┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐┬  ┬┬┌─┐┬ ┬
+├┤ │ ││││ │ ├─┘├┬┘├┤ └┐┌┘│├┤ │││
+└  └─┘┘└┘ ┴ ┴  ┴└─└─┘ └┘ ┴└─┘└┴┘
+Very customizable and minimal font previewer written in bash
+ 
+optional arguments:
+   -h, --help            show this help message and exit
+   -i, --input           filename of the input font (.otf, .ttf, .woff are supported)
+   -o, --output          filename of the output preview image (input.png if not set)
+   --size                size of the font preview window
+   --position            the position where the font preview window should be displayed
+   --search-prompt       input prompt of fuzzy searcher
+   --font-size           font size
+   --bg-color            background color of the font preview window
+   --fg-color            foreground color of the font preview window
+   --preview-text        preview text that should be displayed in the font preview window
+   --version             show the version of fontpreview you are using
+"
 }
 
 pre_exit() {
@@ -159,7 +161,7 @@ TERMWIN_IDFILE="$FONTPREVIEW_DIR/fontpreview.termpid"
 touch "$TERMWIN_IDFILE" || exit
 
 font=$1
-shift
+
 
 # Parse the arguments
 options=$(getopt -o hi:o: --long position:,size:,version,search-prompt:,font-size:,bg-color:,fg-color:,preview-text:,input:,output:,help -- "$@")
@@ -212,21 +214,29 @@ while true; do
     shift
 done
 
+
+# Point a font file to fontpreview and it will preview it.
+# Example:
+#   $ fontpreview /path/to/fontFile.ttf
+#
+# This is useful because people can preview fonts which they have not
+# installed onto their system. So if they want to preview a font file that
+# is in their Downloads directory, then they can easily preview it.
 if [ -f "$font" ]; then
     generate_preview "$font" "$FONT_PREVIEW"
+
     # Display the font preview using sxiv
-	# sxiv -g "$SIZE$POSITION" -N "fontpreview" -b "$FONT_PREVIEW" &
     sxiv -g "$SIZE$POSITION" -N "fontpreview" -b "$FONT_PREVIEW" &
-    # For some strange reason, sxiv just 
-     sleep 0.1
+
+    # For some strange reason, sxiv just doesnt have time to read the file
+    sleep 0.1
     exit
 fi
 
-
-if [[ "$input_file" != "" ]] ; then
-    if [ -z "$output_file" ] ; then
-        output_file="${input_file}.png"
-    fi
+# Check if the user gave an input file if they did, then create a preview
+# and then save the preview to the current working directory
+if [ "$input_file" != "" ] ; then
+    [ -z "$output_file" ] && output_file="${input_file}.png"
     generate_preview "$input_file" "$output_file"
     exit
 fi
