@@ -112,11 +112,3 @@ export FONTPREVIEW_FG_COLOR="#000000"
 # Preview text that should be displayed in the font preview window
 export FONTPREVIEW_PREVIEW_TEXT="ABCDEFGHIJKLM\nNOPQRSTUVWXYZ\nabcdefghijklm\nnopqrstuvwxyz\n1234567890\n!@$\%(){}[]"
 ```
-
-## Tips
-It is recommended to have the preview window floating. So if you use i3wm or a variant, put this in your config:
-
-```
-for_window [instance="fontpreview"] floating enable
-```
-
