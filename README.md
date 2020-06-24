@@ -7,4 +7,4 @@ displayed using `sxiv`. This tool is **highly customizable**, almost all of the
 variables in this tool can be changed using the commandline flags or you can 
 configure them using environment variables.
 
-A personal fork.
+A personal fork which doesn't work with ttc/otc files now.
