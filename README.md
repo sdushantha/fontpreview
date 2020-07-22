@@ -1,4 +1,4 @@
-<p align="center"><img src="extra/logo.png"><br><sub>✨ Very customizable and minimal font previewer written in bash ✨</sub></p>
+<p align="center"><img src="extra/logo.png"><br><sub>✨ Very customizable and minimal font previewer written in POSIX sh ✨</sub></p>
 
 `fontpreview` is a commandline tool that lets you **quickly search** for fonts
 that are installed on your machine and preview them. The **fuzzy search** feature
@@ -51,7 +51,7 @@ usage: fontpreview [-h] [--size "px"] [--position "+x+y"] [--search-prompt SEARC
 ┌─┐┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐┬  ┬┬┌─┐┬ ┬
 ├┤ │ ││││ │ ├─┘├┬┘├┤ └┐┌┘│├┤ │││
 └  └─┘┘└┘ ┴ ┴  ┴└─└─┘ └┘ ┴└─┘└┴┘
-Very customizable and minimal font previewer written in bash
+Very customizable and minimal font previewer written in POSIX sh
 
 optional arguments:
    -h, --help            show this help message and exit

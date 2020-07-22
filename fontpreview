@@ -24,7 +24,7 @@ usage: fontpreview [-h] [--size \"px\"] [--position \"+x+y\"] [--search-prompt S
 ┌─┐┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐┬  ┬┬┌─┐┬ ┬
 ├┤ │ ││││ │ ├─┘├┬┘├┤ └┐┌┘│├┤ │││
 └  └─┘┘└┘ ┴ ┴  ┴└─└─┘ └┘ ┴└─┘└┴┘
-Very customizable and minimal font previewer written in bash
+Very customizable and minimal font previewer written in POSIX sh
  
 optional arguments:
    -h, --help            show this help message and exit
