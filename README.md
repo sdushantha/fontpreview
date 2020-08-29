@@ -8,7 +8,6 @@ variables in this tool can be changed using the commandline flags or you can
 configure them using environment variables.
 
 ![](extra/demo.gif)
-[![Support me!](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/XoJfSVI)
 
 ## Dependencies
 
