@@ -64,16 +64,7 @@ generate_preview(){
         -flatten "$2"
 }
 
-main(){
-    # Checkig if needed dependencies are installed
-    dependencies=(xdotool sxiv convert fzf)
-    for dependency in "${dependencies[@]}"; do
-        type -p "$dependency" &>/dev/null || {
-            echo "error: Could not find '${dependency}', is it installed?" >&2
-            exit 1
-        }
-    done
-
+prepare_defaults() {
     # Checking for enviornment variables which the user might have set.
     # This config file for fontpreview is pretty much the bashrc, zshrc, etc
     # Majority of the variables in fontpreview can changed using the enviornment variables
@@ -85,6 +76,19 @@ main(){
     [[ $FONTPREVIEW_BG_COLOR != "" ]] && BG_COLOR=$FONTPREVIEW_BG_COLOR
     [[ $FONTPREVIEW_FG_COLOR != "" ]] && FG_COLOR=$FONTPREVIEW_FG_COLOR
     [[ $FONTPREVIEW_PREVIEW_TEXT != "" ]] && PREVIEW_TEXT=$FONTPREVIEW_PREVIEW_TEXT
+}
+
+
+
+main(){
+    # Checkig if needed dependencies are installed
+    dependencies=(xdotool sxiv convert fzf)
+    for dependency in "${dependencies[@]}"; do
+        type -p "$dependency" &>/dev/null || {
+            echo "error: Could not find '${dependency}', is it installed?" >&2
+            exit 1
+        }
+    done
 
     # Save the window ID of the terminal window fontpreview is executed in.
     # This is so that when we open up sxiv, we can change the focus back to
@@ -214,6 +218,8 @@ while true; do
     shift
 done
 
+# Both main() and following commands need an environment variables fallback setup
+prepare_defaults
 
 # Point a font file to fontpreview and it will preview it.
 # Example:
