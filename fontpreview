@@ -22,6 +22,8 @@ usage: fontpreview [-h] [--size \"px\"] [--position \"+x+y\"] [--search-prompt S
                    [--font-size \"FONT_SIZE\"] [--bg-color \"BG_COLOR\"] [--fg-color \"FG_COLOR\"]
                    [--preview-text \"PREVIEW_TEXT\"] [-i font.otf] [-o preview.png] [--version]
 
+┌─┐┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐┬  ┬┬┌─┐┬ ┬
+├┤ │ ││││ │ ├─┘├┬┘├┤ └┐┌┘│├┤ │││
 └  └─┘┘└┘ ┴ ┴  ┴└─└─┘ └┘ ┴└─┘└┴┘
 Very customizable and minimal font previewer written in bash
 
@@ -29,6 +31,7 @@ optional arguments:
    -h, --help            show this help message and exit
    -i, --input           filename of the input font (.otf, .ttf, .woff are supported)
    -o, --output          filename of the output preview image (input.png if not set)
+   -e, --search-engine   search engine used to show the list of fonts (fzf and dmenu are supported).
    --size                size of the font preview window
    --position            the position where the font preview window should be displayed
    --search-prompt       input prompt of fuzzy searcher
