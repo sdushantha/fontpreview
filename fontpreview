@@ -8,6 +8,7 @@ VERSION=1.0.7
 
 # Default values
 SEARCH_PROMPT="❯ "
+SEARCH_ENGINE="fzf"
 SIZE=532x365
 POSITION="+0+0"
 FONT_SIZE=38
@@ -20,16 +21,17 @@ printf "%s" "\
 usage: fontpreview [-h] [--size \"px\"] [--position \"+x+y\"] [--search-prompt SEARCH_PROMPT]
                    [--font-size \"FONT_SIZE\"] [--bg-color \"BG_COLOR\"] [--fg-color \"FG_COLOR\"]
                    [--preview-text \"PREVIEW_TEXT\"] [-i font.otf] [-o preview.png] [--version]
- 
+
 ┌─┐┌─┐┌┐┌┌┬┐┌─┐┬─┐┌─┐┬  ┬┬┌─┐┬ ┬
 ├┤ │ ││││ │ ├─┘├┬┘├┤ └┐┌┘│├┤ │││
 └  └─┘┘└┘ ┴ ┴  ┴└─└─┘ └┘ ┴└─┘└┴┘
 Very customizable and minimal font previewer written in bash
- 
+
 optional arguments:
    -h, --help            show this help message and exit
    -i, --input           filename of the input font (.otf, .ttf, .woff are supported)
    -o, --output          filename of the output preview image (input.png if not set)
+   -e, --search-engine   search engine used to show the list of fonts (fzf and dmenu are supported).
    --size                size of the font preview window
    --position            the position where the font preview window should be displayed
    --search-prompt       input prompt of fuzzy searcher
@@ -85,6 +87,7 @@ main(){
     [[ $FONTPREVIEW_BG_COLOR != "" ]] && BG_COLOR=$FONTPREVIEW_BG_COLOR
     [[ $FONTPREVIEW_FG_COLOR != "" ]] && FG_COLOR=$FONTPREVIEW_FG_COLOR
     [[ $FONTPREVIEW_PREVIEW_TEXT != "" ]] && PREVIEW_TEXT=$FONTPREVIEW_PREVIEW_TEXT
+    [[ $FONTPREVIEW_SEARCH_ENGINE != "" ]] && SEARCH_ENGINE=$FONTPREVIEW_SEARCH_ENGINE
 
     # Save the window ID of the terminal window fontpreview is executed in.
     # This is so that when we open up sxiv, we can change the focus back to
@@ -98,7 +101,14 @@ main(){
     while true; do
         # List out all the fonts which imagemagick is able to find, extract
         # the font names and then pass them to fzf
-        font=$(convert -list font | awk -F: '/^[ ]*Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT")
+        case "$SEARCH_ENGINE" in
+          fzf) font=$(convert -list font |
+                      awk -F: '/^[ ]*Font: /{print substr($NF,2)}' |
+                      fzf --prompt="$SEARCH_PROMPT") ;;
+          dmenu) font=$(convert -list font |
+                        awk -F: '/^[ ]*Font: /{print substr($NF,2)}' |
+                        dmenu -p "$SEARCH_PROMPT") ;;
+        esac
 
         # Exit if nothing is returned by fzf, which also means that the user
         # has pressed [ESCAPE]
@@ -164,7 +174,7 @@ font=$1
 
 
 # Parse the arguments
-options=$(getopt -o hi:o: --long position:,size:,version,search-prompt:,font-size:,bg-color:,fg-color:,preview-text:,input:,output:,help -- "$@")
+options=$(getopt -o hi:o:e: --long position:,size:,version,search-prompt:,search-engine:,font-size:,bg-color:,fg-color:,preview-text:,input:,output:,help -- "$@")
 eval set -- "$options"
 
 while true; do
@@ -205,6 +215,9 @@ while true; do
             ;;
         --preview-text)
             FONTPREVIEW_PREVIEW_TEXT=$2
+            ;;
+        -e|--search-engine)
+            FONTPREVIEW_SEARCH_ENGINE=$2
             ;;
         --)
             shift
