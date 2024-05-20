@@ -13,7 +13,7 @@ POSITION="+0+0"
 FONT_SIZE=38
 BG_COLOR="#ffffff"
 FG_COLOR="#000000"
-PREVIEW_TEXT="ABCDEFGHIJKLM\nNOPQRSTUVWXYZ\nabcdefghijklm\nnopqrstuvwxyz\n1234567890\n!@$\%(){}[]"
+PREVIEW_TEXT="ABCDEFGHIJKLM\nNOPQRSTUVWXYZ\nabcdefghijklm\nnopqrstuvwxyz\n1234567890\n!@$\%(){}[]\nالسلام عليكم"
 
 show_help() {
 printf "%s" "\
