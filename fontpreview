@@ -8,7 +8,7 @@ VERSION=1.0.7
 
 # Default values
 SEARCH_PROMPT="❯ "
-SIZE=532x365
+SIZE=1000x1000
 POSITION="+0+0"
 FONT_SIZE=38
 BG_COLOR="#ffffff"
