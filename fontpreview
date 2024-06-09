@@ -55,7 +55,7 @@ pre_exit() {
 
 generate_preview(){
     # Credits: https://bit.ly/2UvLVhM
-    convert -size $SIZE xc:"$BG_COLOR" \
+    magick -size $SIZE xc:"$BG_COLOR" \
         -gravity center \
         -pointsize $FONT_SIZE \
         -font "$1" \
@@ -66,7 +66,7 @@ generate_preview(){
 
 main(){
     # Checkig if needed dependencies are installed
-    dependencies=(xdotool nsxiv convert fzf)
+    dependencies=(xdotool nsxiv magick fzf)
     for dependency in "${dependencies[@]}"; do
         type -p "$dependency" &>/dev/null || {
             echo "error: Could not find '${dependency}', is it installed?" >&2
@@ -98,7 +98,7 @@ main(){
     while true; do
         # List out all the fonts which imagemagick is able to find, extract
         # the font names and then pass them to fzf
-        font=$(convert -list font | awk -F: '/^[ ]*Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT")
+        font=$(magick -list font | awk -F: '/^[ ]*Font: /{print substr($NF,2)}' | fzf --prompt="$SEARCH_PROMPT")
 
         # Exit if nothing is returned by fzf, which also means that the user
         # has pressed [ESCAPE]
